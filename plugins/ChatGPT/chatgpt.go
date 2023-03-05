@@ -66,18 +66,28 @@ func (c *ChatGPT) Close() {
 	c.ctx.Done()
 }
 
-func (c *ChatGPT) Chat(msg string) (answer string, err error) {
+type chatOpt func(chatreq *openai.ChatCompletionRequest)
 
-	rsp, err := c.client.CreateChatCompletion(c.ctx, openai.ChatCompletionRequest{
+func WithUser(user string) chatOpt {
+	return func(chatreq *openai.ChatCompletionRequest) {
+		chatreq.User = user
+	}
+}
+
+func (c *ChatGPT) Chat(msg string, opt ...chatOpt) (answer string, err error) {
+	chatreq := openai.ChatCompletionRequest{
 		Model: openai.GPT3Dot5Turbo,
 		Messages: []openai.ChatCompletionMessage{
 			openai.ChatCompletionMessage{
-				Role:    "user",
+				Role:    openai.ChatMessageRoleUser,
 				Content: msg,
 			},
 		},
-		User: "test123456",
-	})
+	}
+	for _, o := range opt {
+		o(&chatreq)
+	}
+	rsp, err := c.client.CreateChatCompletion(c.ctx, chatreq)
 	if err != nil {
 		if strings.Contains(err.Error(), "You exceeded your current quota") {
 			log.Printf("当前apiKey[]配额已用完, 将删除并切换到下一个")
