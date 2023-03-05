@@ -5,9 +5,7 @@ go 1.18
 require (
 	github.com/Logiase/MiraiGo-Template v0.0.0-20220412065005-27063e73adf8
 	github.com/Mrs4s/MiraiGo v0.0.0-20211225150059-9946b404aea3
-	github.com/PullRequestInc/go-gpt3 v1.1.9
 	github.com/Sakurasan/to v0.0.0-20180919163141-e72657dd7c7d
-	github.com/abhayptp/go-chatgpt v0.0.0-20221204011935-f1721f658e40
 	github.com/cloudwego/hertz v0.4.1
 	github.com/duke-git/lancet/v2 v2.0.9
 	github.com/fsnotify/fsnotify v1.5.4
@@ -15,6 +13,8 @@ require (
 	github.com/spf13/viper v1.10.1
 	github.com/tidwall/gjson v1.13.0
 )
+
+require github.com/sashabaranov/go-openai v1.4.1
 
 require (
 	cloud.google.com/go v0.99.0 // indirect

@@ -6,6 +6,7 @@ import (
 
 	pconfig "Mirai-Plugins/pkg/config"
 	_ "Mirai-Plugins/plugins/bilibili"
+	_ "Mirai-Plugins/plugins/chatgpt"
 	_ "Mirai-Plugins/plugins/ping"
 
 	"github.com/Logiase/MiraiGo-Template/bot"

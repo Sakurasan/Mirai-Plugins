@@ -31,6 +31,7 @@ func Test_bili_getBiliSub(t *testing.T) {
 			name: "徐云",
 			args: args{mid: "697166795"},
 		},
+		{name: "小宁子", args: args{mid: "27899754"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

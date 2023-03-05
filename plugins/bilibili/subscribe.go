@@ -29,7 +29,7 @@ var (
 	// logger      = utils.GetModuleLogger("MiraiGo-Q")
 	ctx, cancel = context.WithCancel(context.Background())
 	// Sub_map      = make(map[string]Vlist)
-	// subUrlformat = "https://api.bilibili.com/x/space/arc/search?mid=697166795s&pn=1&ps=5&order=pubdate&index=1"
+	// subUrlformat = "https://api.bilibili.com/x/space/arc/search?mid=697166795&pn=1&ps=5&order=pubdate&index=1"
 	subUrlformat = "https://api.bilibili.com/x/space/arc/search?mid=%s&ps=5&tid=0&pn=1&keyword=&order=pubdate"
 	tpl          = `
   bilibili:
@@ -240,10 +240,13 @@ func (a *bili) Serve(bot *bot.Bot) {
 						} else {
 							if a.sub_bili[video_channnel] != a.sub_map[video_channnel].Aid {
 								t := time.Unix(a.sub_map[video_channnel].Created, 0)
-								img, _ := miraitool.UpGroupImgByUrl(bot.QQClient, to.Int64(groupCode), a.sub_map[video_channnel].Pic)
+								img, err := miraitool.UpGroupImgByUrl(bot.QQClient, to.Int64(groupCode), a.sub_map[video_channnel].Pic)
+								if err != nil {
+									img, _ = miraitool.UpGroupImgByUrl(bot.QQClient, to.Int64(groupCode), a.sub_map[video_channnel].Pic)
+								}
 							retry:
 								var n = 5
-								ret := bot.SendGroupMessage(to.Int64(groupCode), message.NewSendingMessage().Append(img).Append(message.NewText("\n"+a.sub_map[video_channnel].Title+"\n"+a.sub_map[video_channnel].Description+"\n")).Append(message.NewText(fmt.Sprintf("https://www.bilibili.com/av%d \n --- \n %ss ago", a.sub_map[video_channnel].Aid, strings.Split(time.Now().Sub(t).String(), ".")[0]))))
+								ret := bot.SendGroupMessage(to.Int64(groupCode), message.NewSendingMessage().Append(message.NewText(a.sub_map[video_channnel].Author+" "+video_channnel+"\n")).Append(img).Append(message.NewText("\n"+a.sub_map[video_channnel].Title+"\n"+a.sub_map[video_channnel].Description+"\n")).Append(message.NewText(fmt.Sprintf("https://www.bilibili.com/av%d \n --- \n 时长:%s \n %ss ago", a.sub_map[video_channnel].Aid, a.sub_map[video_channnel].Length, strings.Split(time.Now().Sub(t).String(), ".")[0]))))
 								if ret == nil || ret.Id == -1 {
 									if n >= 0 {
 										goto retry
