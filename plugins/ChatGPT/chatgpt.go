@@ -9,14 +9,16 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-redis/redis"
 	openai "github.com/sashabaranov/go-openai"
 )
 
 type ChatGPT struct {
-	client  openai.Client
-	ctx     context.Context
-	Prompt  string
-	Message []openai.ChatCompletionMessage
+	client openai.Client
+	ctx    context.Context
+	// Prompt  string
+	// Message []openai.ChatCompletionMessage
+	Redis *redis.Client
 }
 
 type chatOption func(*openai.ChatCompletionRequest)
@@ -115,4 +117,15 @@ func (c *ChatGPT) Chat(msg string, opt ...chatOpt) (answer string, err error) {
 	json.NewEncoder(b).Encode(rsp)
 	log.Println(b)
 	return rsp.Choices[0].Message.Content, nil
+}
+
+func (c *ChatGPT) setMessage(user string, msg []openai.ChatCompletionMessage) error {
+	if _, err := c.Redis.LPush(user, msg).Result(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *ChatGPT) getMessage() {
+
 }

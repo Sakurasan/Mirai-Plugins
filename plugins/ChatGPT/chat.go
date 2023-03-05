@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -76,8 +77,10 @@ func (a *A) Serve(b *bot.Bot) {
 				return
 			}
 			m := message.NewSendingMessage().Append(message.NewText(strings.TrimPrefix(answer, "\n")))
-			c.SendGroupMessage(msg.GroupCode, m)
-			return
+			sm := c.SendGroupMessage(msg.GroupCode, m)
+			if sm.Id != 0 {
+				log.Println("发送消息失败")
+			}
 		})
 		// fixAt := func(elem []message.IMessageElement) {
 		// 	for _, e := range elem {
@@ -91,18 +94,19 @@ func (a *A) Serve(b *bot.Bot) {
 		// 		}
 		// 	}
 		// }
-		// b.OnGroupMessage(func(q *client.QQClient, gm *message.GroupMessage) {
-		// 	for _, e := range gm.Elements {
-		// 		switch elem := e.(type) {
-		// 		case *message.AtElement:
-		// 			// group := q.FindGroup(gm.GroupCode)
-		// 			// mem := group.FindMember(elem.Target)
-		// 			if elem.Target == q.Uin {
-		// 				sm := message.NewSendingMessage().Append(&message.ReplyElement{})
-		// 			}
-		// 		}
-		// 	}
-		// })
+		b.OnGroupMessage(func(q *client.QQClient, gm *message.GroupMessage) {
+			for _, e := range gm.Elements {
+				switch elem := e.(type) {
+				case *message.AtElement:
+					// group := q.FindGroup(gm.GroupCode)
+					// mem := group.FindMember(elem.Target)
+					if elem.Target == q.Uin {
+						sm := message.NewSendingMessage().Append(message.NewReply(gm)).Append(message.NewText("在！"))
+						q.SendGroupMessage(gm.GroupCode, sm)
+					}
+				}
+			}
+		})
 
 		b.OnPrivateMessage(func(c *client.QQClient, msg *message.PrivateMessage) {
 			answer, err := chatgpt.Chat(msg.ToString())
