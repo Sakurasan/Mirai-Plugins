@@ -14,6 +14,10 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
+var (
+	KeyNotExist = errors.New("KeyNotExist")
+)
+
 type ChatGPT struct {
 	client openai.Client
 	ctx    context.Context
@@ -120,6 +124,52 @@ func (c *ChatGPT) Chat(msg string, opt ...chatOpt) (answer string, err error) {
 	return rsp.Choices[0].Message.Content, nil
 }
 
+func (c *ChatGPT) ChatWithMessage(msg []openai.ChatCompletionMessage, opt ...chatOpt) (answer string, err error) {
+	chatreq := openai.ChatCompletionRequest{
+		Model:    openai.GPT3Dot5Turbo,
+		Messages: msg,
+	}
+	for _, o := range opt {
+		o(&chatreq)
+	}
+	rsp, err := c.client.CreateChatCompletion(c.ctx, chatreq)
+	if err != nil {
+		if strings.Contains(err.Error(), "You exceeded your current quota") {
+			log.Printf("当前apiKey[]配额已用完, 将删除并切换到下一个")
+			// db.Orm.Table("apikey").Where("key = ?", apiKeys[0].Key).Delete(&ApiKey{})
+			return "", errors.New("OpenAi配额已用完，请联系管理员")
+
+		}
+		if strings.Contains(err.Error(), "The server had an error while processing your request") {
+			return "", errors.New("OpenAi服务出现问题，请重试")
+
+		}
+		if strings.Contains(err.Error(), "Client.Timeout exceeded while awaiting headers") {
+			return "", errors.New("OpenAi服务请求超时，请重试")
+
+		}
+		if strings.Contains(err.Error(), "Please reduce your prompt") {
+			return "", errors.New("OpenAi免费上下文长度限制为4096个词组，您的上下文长度已超出限制，请发送\"清空会话\"以清空上下文")
+		}
+		if strings.Contains(err.Error(), "Incorrect API key") {
+			return "", errors.New("OpenAi ApiKey错误，请联系管理员")
+		}
+		return "", err
+	}
+	b := bytes.NewBuffer(nil)
+	json.NewEncoder(b).Encode(rsp)
+	log.Println(b)
+	if len(msg) == 10 {
+		msg = msg[:9]
+	}
+	msg = append(msg, openai.ChatCompletionMessage{Role: rsp.Choices[0].Message.Role, Content: rsp.Choices[0].Message.Content})
+	if err := c.SetMessage(chatreq.User, msg); err != nil {
+		log.Println(err)
+	}
+
+	return rsp.Choices[0].Message.Content, nil
+}
+
 func (c *ChatGPT) SetMessage(user string, msg []openai.ChatCompletionMessage) error {
 	var buf = bytes.NewBuffer(nil)
 	if err := json.NewEncoder(buf).Encode(msg); err != nil {
@@ -134,8 +184,7 @@ func (c *ChatGPT) SetMessage(user string, msg []openai.ChatCompletionMessage) er
 func (c *ChatGPT) GetMessage(user string) ([]openai.ChatCompletionMessage, error) {
 	result, err := c.Redis.Get("user").Result()
 	if err == redis.Nil {
-		log.Println("找不到")
-		return nil, errors.New("找不到")
+		return nil, nil
 	} else if err != nil {
 		log.Println(err)
 		return nil, err

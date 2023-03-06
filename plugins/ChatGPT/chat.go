@@ -13,6 +13,8 @@ import (
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/Sakurasan/to"
+	"github.com/sashabaranov/go-openai"
 
 	"github.com/Logiase/MiraiGo-Template/bot"
 )
@@ -100,7 +102,23 @@ func (a *A) Serve(b *bot.Bot) {
 				switch elem := e.(type) {
 				case *message.AtElement:
 					if elem.Target == c.Uin {
-						answer, err := chatgpt.Chat(msg.ToString())
+						var (
+							answer string
+							err    error
+						)
+						storemsg, _ := chatgpt.GetMessage(to.String(msg.Sender.Uin))
+						if storemsg != nil && len(storemsg) == 10 {
+							storemsg = storemsg[:9]
+							storemsg = append(storemsg, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: msg.ToString()})
+							answer, err = chatgpt.ChatWithMessage(storemsg, WithUser(to.String(msg.Sender.Uin)))
+						} else if storemsg != nil && len(storemsg) > 0 {
+							storemsg = append(storemsg, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: msg.ToString()})
+							answer, err = chatgpt.ChatWithMessage(storemsg, WithUser(to.String(msg.Sender.Uin)))
+						} else {
+							answer, err = chatgpt.ChatWithMessage([]openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: msg.ToString()}}, WithUser(to.String(msg.Sender.Uin)))
+						}
+
+						// answer, err := chatgpt.Chat(msg.ToString())
 						if err != nil {
 							m := message.NewSendingMessage().Append(message.NewText(err.Error()))
 							c.SendGroupMessage(msg.GroupCode, m)
