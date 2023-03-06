@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-redis/redis"
 	openai "github.com/sashabaranov/go-openai"
@@ -119,13 +120,32 @@ func (c *ChatGPT) Chat(msg string, opt ...chatOpt) (answer string, err error) {
 	return rsp.Choices[0].Message.Content, nil
 }
 
-func (c *ChatGPT) setMessage(user string, msg []openai.ChatCompletionMessage) error {
-	if _, err := c.Redis.LPush(user, msg).Result(); err != nil {
+func (c *ChatGPT) SetMessage(user string, msg []openai.ChatCompletionMessage) error {
+	var buf = bytes.NewBuffer(nil)
+	if err := json.NewEncoder(buf).Encode(msg); err != nil {
+		return err
+	}
+	if _, err := c.Redis.Set(user, buf.String(), 10*time.Minute).Result(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *ChatGPT) getMessage() {
+func (c *ChatGPT) GetMessage(user string) ([]openai.ChatCompletionMessage, error) {
+	result, err := c.Redis.Get("user").Result()
+	if err == redis.Nil {
+		log.Println("找不到")
+		return nil, errors.New("找不到")
+	} else if err != nil {
+		log.Println(err)
+		return nil, err
+	}
 
+	var str = strings.NewReader(result)
+	var chatmsg []openai.ChatCompletionMessage
+	if err := json.NewDecoder(str).Decode(&chatmsg); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return chatmsg, nil
 }
