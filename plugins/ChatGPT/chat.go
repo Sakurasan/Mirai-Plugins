@@ -70,17 +70,18 @@ func (a *A) PostInit() {
 func (a *A) Serve(b *bot.Bot) {
 	if b != nil {
 		b.OnGroupMessage(func(c *client.QQClient, msg *message.GroupMessage) {
-			answer, err := chatgpt.Chat(msg.ToString())
-			if err != nil {
-				m := message.NewSendingMessage().Append(message.NewText(err.Error()))
-				c.SendGroupMessage(msg.GroupCode, m)
-				return
-			}
-			m := message.NewSendingMessage().Append(message.NewText(strings.TrimPrefix(answer, "\n")))
-			sm := c.SendGroupMessage(msg.GroupCode, m)
-			if sm.Id != 0 {
-				log.Println("发送消息失败")
-			}
+			log.Println(msg.ToString())
+			// answer, err := chatgpt.Chat(msg.ToString())
+			// if err != nil {
+			// 	m := message.NewSendingMessage().Append(message.NewText(err.Error()))
+			// 	c.SendGroupMessage(msg.GroupCode, m)
+			// 	return
+			// }
+			// m := message.NewSendingMessage().Append(message.NewText(strings.TrimPrefix(answer, "\n")))
+			// sm := c.SendGroupMessage(msg.GroupCode, m)
+			// if sm.Id != 0 {
+			// 	log.Println("发送消息失败")
+			// }
 		})
 		// fixAt := func(elem []message.IMessageElement) {
 		// 	for _, e := range elem {
@@ -94,15 +95,20 @@ func (a *A) Serve(b *bot.Bot) {
 		// 		}
 		// 	}
 		// }
-		b.OnGroupMessage(func(q *client.QQClient, gm *message.GroupMessage) {
-			for _, e := range gm.Elements {
+		b.OnGroupMessage(func(c *client.QQClient, msg *message.GroupMessage) {
+			for _, e := range msg.Elements {
 				switch elem := e.(type) {
 				case *message.AtElement:
-					// group := q.FindGroup(gm.GroupCode)
-					// mem := group.FindMember(elem.Target)
-					if elem.Target == q.Uin {
-						sm := message.NewSendingMessage().Append(message.NewReply(gm)).Append(message.NewText("在！"))
-						q.SendGroupMessage(gm.GroupCode, sm)
+					if elem.Target == c.Uin {
+						answer, err := chatgpt.Chat(msg.ToString())
+						if err != nil {
+							m := message.NewSendingMessage().Append(message.NewText(err.Error()))
+							c.SendGroupMessage(msg.GroupCode, m)
+							return
+						}
+						answer = strings.TrimPrefix(answer, "\n\n")
+						sm := message.NewSendingMessage().Append(message.NewReply(msg)).Append(message.NewText(answer))
+						c.SendGroupMessage(msg.GroupCode, sm)
 					}
 				}
 			}
