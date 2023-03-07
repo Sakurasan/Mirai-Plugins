@@ -163,7 +163,7 @@ func (c *ChatGPT) ChatWithMessage(msg []openai.ChatCompletionMessage, opt ...cha
 	json.NewEncoder(b).Encode(rsp)
 	log.Println(b)
 	if len(msg) == 10 {
-		msg = msg[:9]
+		msg = msg[1:]
 	}
 	msg = append(msg, openai.ChatCompletionMessage{Role: rsp.Choices[0].Message.Role, Content: rsp.Choices[0].Message.Content})
 	if err := c.SetMessage(chatreq.User, msg); err != nil {
@@ -185,7 +185,7 @@ func (c *ChatGPT) SetMessage(user string, msg []openai.ChatCompletionMessage) er
 }
 
 func (c *ChatGPT) GetMessage(user string) ([]openai.ChatCompletionMessage, error) {
-	result, err := c.Redis.Get("user").Result()
+	result, err := c.Redis.Get(user).Result()
 	if err == redis.Nil {
 		return nil, nil
 	} else if err != nil {

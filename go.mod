@@ -16,7 +16,8 @@ require (
 
 require (
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/sashabaranov/go-openai v1.4.1
+	github.com/sashabaranov/go-openai v1.4.2
+
 )
 
 require (

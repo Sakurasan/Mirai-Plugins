@@ -14,7 +14,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Sakurasan/to"
-	"github.com/sashabaranov/go-openai"
+	openai "github.com/sashabaranov/go-openai"
 
 	"github.com/Logiase/MiraiGo-Template/bot"
 )
@@ -74,6 +74,7 @@ func (a *A) Serve(b *bot.Bot) {
 		b.OnGroupMessage(func(c *client.QQClient, msg *message.GroupMessage) {
 			log.Println(msg.ToString())
 			// answer, err := chatgpt.Chat(msg.ToString())
+			// answer, err := chatgpt.ChatWithMessage([]openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: msg.ToString()}}, WithUser(to.String(msg.Sender.Uin)))
 			// if err != nil {
 			// 	m := message.NewSendingMessage().Append(message.NewText(err.Error()))
 			// 	c.SendGroupMessage(msg.GroupCode, m)
@@ -81,7 +82,7 @@ func (a *A) Serve(b *bot.Bot) {
 			// }
 			// m := message.NewSendingMessage().Append(message.NewText(strings.TrimPrefix(answer, "\n")))
 			// sm := c.SendGroupMessage(msg.GroupCode, m)
-			// if sm.Id != 0 {
+			// if sm == nil || sm.Id == -1 {
 			// 	log.Println("发送消息失败")
 			// }
 		})
@@ -98,34 +99,47 @@ func (a *A) Serve(b *bot.Bot) {
 		// 	}
 		// }
 		b.OnGroupMessage(func(c *client.QQClient, msg *message.GroupMessage) {
-			for _, e := range msg.Elements {
-				switch elem := e.(type) {
+			var isat bool
+			var ele []message.IMessageElement
+			for _, elem := range msg.Elements {
+				switch e := elem.(type) {
 				case *message.AtElement:
-					if elem.Target == c.Uin {
+					if e.Target == c.Uin { //被@
+						if !isat {
+							isat = true
+							ele = append(ele, elem)
+						}
+					}
+				case *message.TextElement:
+					e.Content = strings.TrimSpace(e.Content)
+					if len(e.Content) == 0 {
+						continue
+					}
+					if isat {
+						ele = append(ele, elem)
 						var (
 							answer string
 							err    error
 						)
 						storemsg, _ := chatgpt.GetMessage(to.String(msg.Sender.Uin))
-						if storemsg != nil && len(storemsg) == 10 {
-							storemsg = storemsg[:9]
-							storemsg = append(storemsg, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: msg.ToString()})
+						if storemsg == nil {
+							answer, err = chatgpt.ChatWithMessage([]openai.ChatCompletionMessage{{Role: "user", Content: e.Content}}, WithUser(to.String(msg.Sender.Uin)))
+						} else if len(storemsg) == 10 {
+							storemsg = storemsg[1:]
+							storemsg = append(storemsg, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: e.Content})
 							answer, err = chatgpt.ChatWithMessage(storemsg, WithUser(to.String(msg.Sender.Uin)))
-						} else if storemsg != nil && len(storemsg) > 0 {
-							storemsg = append(storemsg, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: msg.ToString()})
+						} else if len(storemsg) >= 0 {
+							storemsg = append(storemsg, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: e.Content})
 							answer, err = chatgpt.ChatWithMessage(storemsg, WithUser(to.String(msg.Sender.Uin)))
-						} else {
-							answer, err = chatgpt.ChatWithMessage([]openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: msg.ToString()}}, WithUser(to.String(msg.Sender.Uin)))
 						}
-
 						// answer, err := chatgpt.Chat(msg.ToString())
 						if err != nil {
-							m := message.NewSendingMessage().Append(message.NewText(err.Error()))
-							c.SendGroupMessage(msg.GroupCode, m)
+							sm := message.NewSendingMessage().Append(message.NewText(err.Error()))
+							c.SendGroupMessage(msg.GroupCode, sm)
 							return
 						}
 						answer = strings.TrimPrefix(answer, "\n\n")
-						sm := message.NewSendingMessage().Append(message.NewReply(msg)).Append(message.NewText(answer))
+						sm := message.NewSendingMessage().Append(message.NewReply(&message.GroupMessage{Id: msg.Id, Sender: msg.Sender, Time: msg.Time, Elements: ele})).Append(message.NewText(answer))
 						c.SendGroupMessage(msg.GroupCode, sm)
 					}
 				}
