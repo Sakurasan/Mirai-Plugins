@@ -1,6 +1,7 @@
 package chatgpt
 
 import (
+	"Mirai-Plugins/pkg/config"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -63,9 +64,11 @@ func New(ctx context.Context, authToken string, opt ...openaiOption) *ChatGPT {
 	for _, o := range opt {
 		o(&opConfig)
 	}
+	rdb := NewRedis(config.PluginConfig.GetString("plugins.chatgpt.redisaddr"), config.PluginConfig.GetString("plugins.chatgpt.redispassword"))
 	return &ChatGPT{
 		client: *openai.NewClientWithConfig(opConfig),
 		ctx:    ctx,
+		Redis:  rdb,
 	}
 }
 
