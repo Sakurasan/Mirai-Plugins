@@ -1,6 +1,6 @@
 module Mirai-Plugins
 
-go 1.18
+go 1.19
 
 require (
 	github.com/Logiase/MiraiGo-Template v0.0.0-20220412065005-27063e73adf8

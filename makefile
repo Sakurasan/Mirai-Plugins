@@ -29,7 +29,7 @@ buildx:
 	docker run --privileged --rm tonistiigi/binfmt --install all
 	docker buildx create --use --name xbuilder
 	docker buildx inspect xbuilder --bootstrap
-	docker buildx build --platform linux/amd64,linux/arm64 -t mirrors2/tinyurl:latest . --push
+	docker buildx build --platform linux/amd64,linux/arm64 -t mirrors2/qchat:latest . --push
 
 .PHONY: clean
 # clean
