@@ -20,12 +20,21 @@ LDFlags=" \
 build:
 # mkdir -p bin/ && go build -ldflags $(LDFlags) -o ./bin/ ./...
 	rm -rf qq.tgz /bin/qq 
-	mkdir -p bin/  && CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags "-s -w" -o ./bin/ ./...
+	mkdir -p bin/  && CGO_ENABLED=0 go build -ldflags "-s -w" -o ./bin/ ./...
 	upx -9 bin/qq
 	tar -zcvf qq.tgz -C bin/ qq
 
-.PHONY:buildx
+.PHONY: buildx
+# buildx
 buildx:
+# mkdir -p bin/ && go build -ldflags $(LDFlags) -o ./bin/ ./...
+	rm -rf qq.tgz /bin/qq 
+	mkdir -p bin/  && CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags "-s -w" -o ./bin/ ./...
+	upx -9 bin/qq
+	tar -zcvf qq.tgz -C bin/ qq	
+
+.PHONY:docker
+docker:
 	docker run --privileged --rm tonistiigi/binfmt --install all
 	docker buildx create --use --name xbuilder
 	docker buildx inspect xbuilder --bootstrap
