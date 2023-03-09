@@ -46,3 +46,5 @@ plugins:
 ```
 
 authToken获取地址 https://platform.openai.com/account/api-keys
+
+使用`docker-compose up -d`启动容器，然后`docker logs qchat`查看日志并扫码登录
