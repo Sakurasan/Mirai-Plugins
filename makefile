@@ -21,8 +21,8 @@ build:
 # mkdir -p bin/ && go build -ldflags $(LDFlags) -o ./bin/ ./...
 	rm -rf qq.tgz /bin/qq 
 	mkdir -p bin/  && CGO_ENABLED=0 go build -ldflags "-s -w" -o ./bin/ ./...
-	upx -9 bin/qq
-	tar -zcvf qq.tgz -C bin/ qq
+	upx -9 bin/chat
+	# tar -zcvf qq.tgz -C bin/ qq
 
 .PHONY: buildx
 # buildx

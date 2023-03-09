@@ -15,6 +15,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Sakurasan/to"
 	openai "github.com/sashabaranov/go-openai"
+	"github.com/sirupsen/logrus"
 
 	"github.com/Logiase/MiraiGo-Template/bot"
 )
@@ -73,18 +74,28 @@ func (a *A) Serve(b *bot.Bot) {
 	if b != nil {
 		b.OnGroupMessage(func(c *client.QQClient, msg *message.GroupMessage) {
 			log.Println(msg.ToString())
-			// answer, err := chatgpt.Chat(msg.ToString())
+			var str string
+			for _, elem := range msg.Elements {
+				if e, ok := elem.(*message.TextElement); ok {
+					str += e.Content
+				}
+				if _, ok := elem.(*message.AtElement); ok {
+					return
+				}
+			}
+			str = strings.TrimSpace(str)
+			answer, err := chatgpt.Chat(str)
 			// answer, err := chatgpt.ChatWithMessage([]openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: msg.ToString()}}, WithUser(to.String(msg.Sender.Uin)))
-			// if err != nil {
-			// 	m := message.NewSendingMessage().Append(message.NewText(err.Error()))
-			// 	c.SendGroupMessage(msg.GroupCode, m)
-			// 	return
-			// }
-			// m := message.NewSendingMessage().Append(message.NewText(strings.TrimPrefix(answer, "\n")))
-			// sm := c.SendGroupMessage(msg.GroupCode, m)
-			// if sm == nil || sm.Id == -1 {
-			// 	log.Println("发送消息失败")
-			// }
+			if err != nil {
+				m := message.NewSendingMessage().Append(message.NewText(err.Error()))
+				c.SendGroupMessage(msg.GroupCode, m)
+				return
+			}
+			m := message.NewSendingMessage().Append(message.NewText(strings.TrimPrefix(answer, "\n")))
+			sm := c.SendGroupMessage(msg.GroupCode, m)
+			if sm == nil || sm.Id == -1 {
+				logrus.WithField("chatgpt", "OnGroupMessage").Error("发送消息失败")
+			}
 		})
 		// fixAt := func(elem []message.IMessageElement) {
 		// 	for _, e := range elem {
@@ -99,6 +110,10 @@ func (a *A) Serve(b *bot.Bot) {
 		// 	}
 		// }
 		b.OnGroupMessage(func(c *client.QQClient, msg *message.GroupMessage) {
+			if !chatgpt.hasdb {
+				logrus.WithField("Plugins", "chatgpt").Warningln("数据库配置失败,该功能暂停使用")
+				return
+			}
 			var isat bool
 			var ele []message.IMessageElement
 			for _, elem := range msg.Elements {

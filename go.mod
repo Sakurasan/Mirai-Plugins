@@ -17,6 +17,7 @@ require (
 require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/sashabaranov/go-openai v1.4.2
+	github.com/sirupsen/logrus v1.8.1
 
 )
 
@@ -60,7 +61,6 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.12 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
 	github.com/spf13/afero v1.7.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect

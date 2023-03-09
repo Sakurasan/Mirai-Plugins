@@ -1,7 +1,6 @@
 FROM golang:1.19.7-alpine as builder
 LABEL anther="github.com/Sakurasan"
-# RUN apt install -y git make
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && apk update && apk --no-cache add openssl gcc g++ make libffi-dev libtool cmake upx 
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && apk update && apk --no-cache add openssl make cmake upx 
 WORKDIR /build
 COPY . /build
 ENV GO111MODULE=on

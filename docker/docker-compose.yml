@@ -1,0 +1,26 @@
+version: '3'
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - 6379:6379
+    environment:
+      TZ: Asia/Shanghai      
+    volumes:
+      - ./rdb/data:/data
+      - ./rdb/conf/redis.conf:/etc/redis/redis.conf
+      - ./rdb/logs:/logs
+    command: ["redis-server","/etc/redis/redis.conf"]  
+
+  qchat:
+    image: mirrors2/qchat:latest
+    container_name: qchat
+    depends_on:
+      - redis
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+    

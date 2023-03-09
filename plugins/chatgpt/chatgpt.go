@@ -25,6 +25,7 @@ type ChatGPT struct {
 	// Prompt  string
 	// Message []openai.ChatCompletionMessage
 	Redis *redis.Client
+	hasdb bool
 }
 
 type chatOption func(*openai.ChatCompletionRequest)
@@ -64,12 +65,19 @@ func New(ctx context.Context, authToken string, opt ...openaiOption) *ChatGPT {
 	for _, o := range opt {
 		o(&opConfig)
 	}
-	rdb := NewRedis(config.PluginConfig.GetString("plugins.chatgpt.redisaddr"), config.PluginConfig.GetString("plugins.chatgpt.redispassword"))
-	return &ChatGPT{
+
+	_chatgpt := &ChatGPT{
 		client: *openai.NewClientWithConfig(opConfig),
 		ctx:    ctx,
-		Redis:  rdb,
 	}
+	rdb, err := NewRedis(config.PluginConfig.GetString("plugins.chatgpt.redisaddr"), config.PluginConfig.GetString("plugins.chatgpt.redispassword"))
+	if err != nil {
+		_chatgpt.hasdb = false
+	} else {
+		_chatgpt.Redis = rdb
+	}
+	return _chatgpt
+
 }
 
 func (c *ChatGPT) Close() {

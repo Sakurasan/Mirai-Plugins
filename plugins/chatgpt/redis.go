@@ -4,7 +4,7 @@ import (
 	"github.com/go-redis/redis"
 )
 
-func NewRedis(addr, password string) *redis.Client {
+func NewRedis(addr, password string) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password, // no password set
@@ -13,8 +13,8 @@ func NewRedis(addr, password string) *redis.Client {
 
 	_, err := client.Ping().Result()
 	if err != nil {
-		panic(err)
+		return client, err
 	}
 
-	return client
+	return client, nil
 }
