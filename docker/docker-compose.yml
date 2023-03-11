@@ -10,8 +10,8 @@ services:
       TZ: Asia/Shanghai      
     volumes:
       - ./rdb/data:/data
-      - ./rdb/conf/redis.conf:/etc/redis/redis.conf
       - ./rdb/logs:/logs
+      - ./rdb/conf/redis.conf:/etc/redis/redis.conf
     command: ["redis-server","/etc/redis/redis.conf"]  
 
   qchat:
