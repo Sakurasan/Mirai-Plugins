@@ -72,43 +72,7 @@ func (a *A) PostInit() {
 
 func (a *A) Serve(b *bot.Bot) {
 	if b != nil {
-		b.OnGroupMessage(func(c *client.QQClient, msg *message.GroupMessage) {
-			log.Println(msg.ToString())
-			var str string
-			for _, elem := range msg.Elements {
-				if e, ok := elem.(*message.TextElement); ok {
-					str += e.Content
-				}
-				if _, ok := elem.(*message.AtElement); ok {
-					return
-				}
-			}
-			str = strings.TrimSpace(str)
-			answer, err := chatgpt.Chat(str)
-			// answer, err := chatgpt.ChatWithMessage([]openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: msg.ToString()}}, WithUser(to.String(msg.Sender.Uin)))
-			if err != nil {
-				m := message.NewSendingMessage().Append(message.NewText(err.Error()))
-				c.SendGroupMessage(msg.GroupCode, m)
-				return
-			}
-			m := message.NewSendingMessage().Append(message.NewText(strings.TrimPrefix(answer, "\n")))
-			sm := c.SendGroupMessage(msg.GroupCode, m)
-			if sm == nil || sm.Id == -1 {
-				logrus.WithField("chatgpt", "OnGroupMessage").Error("发送消息失败")
-			}
-		})
-		// fixAt := func(elem []message.IMessageElement) {
-		// 	for _, e := range elem {
-		// 		if at, ok := e.(*message.AtElement); ok && at.Target != 0 && at.Display == "" {
-		// 			mem := group.FindMember(at.Target)
-		// 			if mem != nil {
-		// 				at.Display = "@" + mem.DisplayName()
-		// 			} else {
-		// 				at.Display = "@" + strconv.FormatInt(at.Target, 10)
-		// 			}
-		// 		}
-		// 	}
-		// }
+		//优先处理@
 		b.OnGroupMessage(func(c *client.QQClient, msg *message.GroupMessage) {
 			if !chatgpt.hasdb {
 				logrus.WithField("Plugins", "chatgpt").Warningln("数据库配置失败,该功能暂停使用")
@@ -158,6 +122,32 @@ func (a *A) Serve(b *bot.Bot) {
 						c.SendGroupMessage(msg.GroupCode, sm)
 					}
 				}
+			}
+		})
+
+		b.OnGroupMessage(func(c *client.QQClient, msg *message.GroupMessage) {
+			log.Println(msg.ToString())
+			var str string
+			for _, elem := range msg.Elements {
+				if e, ok := elem.(*message.TextElement); ok {
+					str += e.Content
+				}
+				if _, ok := elem.(*message.AtElement); ok {
+					return
+				}
+			}
+			str = strings.TrimSpace(str)
+			answer, err := chatgpt.Chat(str)
+			// answer, err := chatgpt.ChatWithMessage([]openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: msg.ToString()}}, WithUser(to.String(msg.Sender.Uin)))
+			if err != nil {
+				m := message.NewSendingMessage().Append(message.NewText(err.Error()))
+				c.SendGroupMessage(msg.GroupCode, m)
+				return
+			}
+			m := message.NewSendingMessage().Append(message.NewText(strings.TrimPrefix(answer, "\n")))
+			sm := c.SendGroupMessage(msg.GroupCode, m)
+			if sm == nil || sm.Id == -1 {
+				logrus.WithField("chatgpt", "OnGroupMessage").Error("发送消息失败")
 			}
 		})
 
