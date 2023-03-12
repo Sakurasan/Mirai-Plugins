@@ -1,6 +1,6 @@
 # Mirai-Plugins
 
-<img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Sakurasan/Mirai-Plugins/build.yaml?label=Actions&logo=github&style=flat-square">
+<a title="Docker Image CI" target="_blank" href="https://github.com/Sakurasan/Mirai-Plugins/actions"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Sakurasan/Mirai-Plugins/build.yaml?label=Actions&logo=github&style=flat-square"></a>
 <a title="Docker Pulls" target="_blank" href="https://hub.docker.com/r/mirrors2/qchat"><img src="https://img.shields.io/docker/pulls/mirrors2/qchat.svg?logo=docker&label=docker&style=flat-square"></a>
 
 一个基于MiraiGo-Template的插件列表，欢迎👏🏻PR,参考ping/pong模板
