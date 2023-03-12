@@ -1,8 +1,13 @@
 # qchat
-
 ChatGPT for QQ
+
+支持联系上下文对话(记录以前对话)，和普通问答
+
+上下文信息10 minutes后遗忘，滚动记忆5次对话
 ## 使用方式
-@机器人 提问
+@机器人 提问 (此模式支持上下文)
+
+群聊 普通问答
 
 docker-compose.yaml
 ```Docker-compose.yaml

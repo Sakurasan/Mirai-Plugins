@@ -20,7 +20,7 @@ jobs:
         submodules: 'true'
     - name: Get current date
       id: date
-      run: echo "::set-output name=today::$(date +'%Y-%m-%d')"        
+      run: echo "::set-output name=today::$(date +'%Y%m%d')"        
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
     - name: Set up Docker Buildx
@@ -39,9 +39,11 @@ jobs:
           file: ./docker/Dockerfile.chat
           push: true
           #在这里通过加入需要编译的平台和前面配好的QEMU，buildx来达到多平台编译
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm
           #指定用户/仓库名
-          tags: mirrors2/qchat:latest
+          tags: |
+            mirrors2/qchat:latest
+            mirrors2/qchat:${{ steps.date.outputs.today }}
     - name: Docker Hub Description
       #这里是通过md文件自动生成dockerhub描述的模块，也可以不需要
       uses: peter-evans/dockerhub-description@v3

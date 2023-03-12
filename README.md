@@ -7,6 +7,10 @@
 - [ChatGPT](./cmd/chat/README.md)
 
 ---
+@机器人 提问 (此模式支持上下文)
+
+群聊 普通问答
+
 docker-compose.yaml
 ```Docker-compose.yaml
 version: '3'
@@ -49,3 +53,4 @@ plugins:
     redispassword: 
 ```
 使用`docker-compose up -d`启动容器，然后`docker logs qchat`查看日志并扫码登录
+
